@@ -88,7 +88,11 @@
                                             style="background:rgba(255,68,68,0.2); color:#FF4444">
                                             Hapus
                                         </button>
+<<<<<<< HEAD
                                          @endif
+=======
+                                        @endif
+>>>>>>> 0328b56 (Perbaikan autentikasi dan testing Laravel)
                                     </div>
                                 </td>
                             </tr>

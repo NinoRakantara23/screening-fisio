@@ -31,8 +31,16 @@ Route::post('/logout', [LoginController::class, 'logout'])
 */
 Route::middleware(['auth'])->group(function () {
 
-    // Root redirect
-    Route::get('/', fn() => redirect()->route('dashboard.index'));
+    // Root redirect — role-aware
+    Route::get('/', function () {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        return match ($user->role) {
+            'admin'   => redirect()->route('dashboard.index'),
+            'fisio'   => redirect()->route('tests.index'),
+            'pelatih' => redirect()->route('mental.index'),
+            default   => redirect()->route('dashboard.index'),
+        };
+    });
 
     /* ---- Dashboard ---- */
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
