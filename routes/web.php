@@ -1,6 +1,9 @@
 <?php
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AthleteController;
 use App\Http\Controllers\TestController;
@@ -8,7 +11,23 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\MentalController;
 use App\Http\Controllers\TaktikController;
 use App\Http\Controllers\ReportsController;
-use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\PlayerController;
+
+/*
+|--------------------------------------------------------------------------
+| HALAMAN UTAMA = LOGIN
+| Membuka "/" selalu menampilkan halaman login (sesi lama dihapus).
+|--------------------------------------------------------------------------
+*/
+Route::get('/', function (Request $request) {
+    if (Auth::check()) {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+    }
+
+    return redirect()->route('login');
+})->name('home');
 
 /*
 |--------------------------------------------------------------------------
@@ -31,45 +50,26 @@ Route::post('/logout', [LoginController::class, 'logout'])
 */
 Route::middleware(['auth'])->group(function () {
 
-    // Root redirect — role-aware
-    Route::get('/', function () {
-        $user = \Illuminate\Support\Facades\Auth::user();
-        return match ($user->role) {
-            'admin'   => redirect()->route('dashboard.index'),
-            'fisio'   => redirect()->route('tests.index'),
-            'pelatih' => redirect()->route('mental.index'),
-            default   => redirect()->route('dashboard.index'),
-        };
-    });
-
-    /* ---- Dashboard ---- */
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+    /* ---- Dashboard (Admin, Fisio, Pelatih) ---- */
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard.index')->middleware('role:fisio,pelatih');
 
     /* ---- Athletes ---- */
-    // Semua role auth bisa lihat daftar & detail
-    Route::get('/athletes', [AthleteController::class, 'index'])->name('athletes.index');
-    Route::get('/athletes/{id}', [AthleteController::class, 'show'])->name('athletes.show');
+    Route::get('/athletes', [AthleteController::class, 'index'])
+        ->name('athletes.index')->middleware('role:fisio,pelatih');
+    Route::get('/athletes/{id}', [AthleteController::class, 'show'])
+        ->name('athletes.show')->middleware('role:fisio,pelatih');
 
-    // Hanya admin & fisio yang boleh tambah/edit/hapus
     Route::post('/athletes', [AthleteController::class, 'store'])->name('athletes.store')->middleware('role:fisio');
     Route::put('/athletes/{id}', [AthleteController::class, 'update'])->name('athletes.update')->middleware('role:fisio');
     Route::delete('/athletes/{id}', [AthleteController::class, 'destroy'])->name('athletes.destroy')->middleware('role:fisio');
 
-    /* ---- SCREENING FISIOTERAPI FORMS & ROUTES (Fisio & Admin) ---- */
+    /* ---- SCREENING FISIOTERAPI (Fisio & Admin) ---- */
     Route::get('/tests', [TestController::class, 'index'])->name('tests.index')->middleware('role:fisio');
 
-    // Forms routes
     $forms = [
-        'endurance',
-        'speed',
-        'agility',
-        'strength',
-        'power',
-        'accuracy',
-        'reaction',
-        'coordination',
-        'flexibility',
-        'balance',
+        'endurance', 'speed', 'agility', 'strength', 'power',
+        'accuracy', 'reaction', 'coordination', 'flexibility', 'balance',
     ];
 
     foreach ($forms as $form) {
@@ -87,13 +87,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/athlete/{id}', [ReportController::class, 'athleteReport'])->name('report.athlete');
     });
 
-    /* ---- MENTAL ASSESSMENT (Pelatih & Admin) ---- */
+    /* ---- ASSESSMENT MENTAL & TAKTIK (Pelatih & Admin) ---- */
     Route::middleware('role:pelatih')->group(function () {
         Route::resource('mental', MentalController::class);
-    });
-
-    /* ---- TAKTIK ASSESSMENT (Pelatih & Admin) ---- */
-    Route::middleware('role:pelatih')->group(function () {
         Route::resource('taktik', TaktikController::class);
     });
 
@@ -102,5 +98,16 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [ReportsController::class, 'index'])->name('reports.index');
         Route::get('/export/pdf', [ReportsController::class, 'exportPdf'])->name('reports.export.pdf');
         Route::get('/export/excel', [ReportsController::class, 'exportExcel'])->name('reports.export.excel');
+    });
+
+    /* ---- AREA PEMAIN (read-only, data milik sendiri) ---- */
+    Route::prefix('pemain')->name('player.')->middleware('role:pemain')->group(function () {
+        Route::get('/', [PlayerController::class, 'dashboard'])->name('dashboard');
+        Route::get('/profil', [PlayerController::class, 'profile'])->name('profile');
+        Route::put('/profil', [PlayerController::class, 'updateProfile'])->name('profile.update');
+        Route::get('/hasil-fisioterapi', [PlayerController::class, 'tests'])->name('tests');
+        Route::get('/assessment-mental', [PlayerController::class, 'mental'])->name('mental');
+        Route::get('/assessment-taktik', [PlayerController::class, 'taktik'])->name('taktik');
+        Route::get('/laporan-pdf', [PlayerController::class, 'pdf'])->name('pdf');
     });
 });

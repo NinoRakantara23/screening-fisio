@@ -1,0 +1,17 @@
+4eb28fd | Ambulau | 2026-10-12 | Perbaikan autentikasi dan testing Laravel
+638726b | Nino Rakantara | 2026-10-12 | Merge pull request #1 from Nino2328/fix/audit-tahap-1
+ed2c692 | Nino2328 | 2026-10-12 | docs: update E2E audit notes
+d448d25 | Nino2328 | 2026-10-09 | test(T12): tambah suite uji E2E Playwright (e2e-audit)
+32c1e41 | Nino2328 | 2026-10-09 | fix(T11): skala skor rating Fair sesuai urutan opsi form
+0f64cf4 | Nino2328 | 2026-10-09 | fix(T10): hapus RegisterController dan view register (registrasi ditutup)
+3dbbeb9 | Nino2328 | 2026-10-09 | fix(T9): baris kontrol & tombol export /report membungkus di layar sempit
+987daf3 | Nino2328 | 2026-10-09 | fix(T8): statistik fisik dashboard hanya untuk admin & fisio
+a9b9019 | Nino2328 | 2026-10-09 | fix(T7): aturan identitas & vital bersama untuk 10 form tes
+b998293 | Nino2328 | 2026-10-09 | fix(T6): skala rating sempurna/fair/weak/kurang sekali + rating tampil di tabel hasil
+24856f4 | Nino2328 | 2026-10-09 | fix(T5): validasi tanggal lahir, pesan validasi tampil di modal atlet
+888806e | Nino2328 | 2026-10-09 | fix(T4): hapus route lupa password, ganti link dengan teks statis
+d169088 | Nino2328 | 2026-10-09 | fix(T3): nama file foto pakai UUID, batasi unlink ke folder atlet, label foto tanpa innerHTML
+fc7a8cd | Nino2328 | 2026-10-09 | fix(T2): tutup registrasi publik (route & link daftar dihapus)
+f980cd1 | Nino2328 | 2026-10-09 | fix(T1): tampilkan '-' untuk assessment tanpa atlet di laporan pelatih
+5fbb5c0 | Nino2328 | 2026-10-09 | fix: samakan role ke fisio, batasi route atlet, throttle login, allow-list guard tombol; hapus .cursor dan lepas foto upload dari tracking
+aaa87e6 | Nino2328 | 2026-10-09 | first commit

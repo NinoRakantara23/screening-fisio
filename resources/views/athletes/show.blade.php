@@ -5,58 +5,13 @@
 
 @section('content')
 
-<<<<<<< HEAD
-{{-- Back Button & Actions --}}
-<div class="flex items-center justify-between mb-6">
-    <a href="{{ route('athletes.index') }}" class="flex items-center gap-2 text-sm transition hover:text-opacity-80"
-        style="color:#00E676">
-        ← Kembali ke Data Atlet
-    </a>
-    @if(in_array(auth()->user()->role, ['admin', 'fisio'], true))
-    <div class="flex gap-2">
-        <button onclick="editAthleteModal()"
-            class="px-4 py-2 rounded-lg text-sm font-semibold transition hover:-translate-y-px"
-            style="background:rgba(255,152,0,0.2); color:#FFB74D">
-            Edit Data
-        </button>
-        <button onclick="deleteAthlete({{ $athlete->id }})"
-            class="px-4 py-2 rounded-lg text-sm font-semibold transition hover:-translate-y-px"
-            style="background:rgba(255,68,68,0.2); color:#FF4444">
-            Hapus
-        </button>
-    </div>
-    @endif
-</div>
-
-@if(auth()->user()->role === 'pelatih')
-@php
-    $coachTestCount = $mentalAssessments->count() + $taktikAssessments->count();
-@endphp
-<div class="mb-6 rounded-3xl p-6" style="background:#0B1014; border:1px solid rgba(0,230,118,0.2);">
-    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-6">
-        <div>
-            <h1 class="font-display text-3xl lg:text-4xl tracking-[0.15em] uppercase" style="color:#FFFFFF">
-                {{ $athlete->name }}</h1>
-            <p class="mt-2 text-sm" style="color:#7A8D9E">Profil atlet dan hasil assessment mental serta taktik.</p>
-        </div>
-        <div class="flex flex-wrap gap-2">
-            <a href="{{ route('mental.create', ['athlete_id' => $athlete->id]) }}"
-                class="inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold"
-                style="background:#3A2E08; color:#FFE9A3; border:1px solid rgba(255,183,0,0.25);">
-                + Mental
-            </a>
-            <a href="{{ route('taktik.create', ['athlete_id' => $athlete->id]) }}"
-                class="inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold"
-                style="background:#3A1515; color:#FFD0D0; border:1px solid rgba(255,107,107,0.25);">
-                + Taktik
-            </a>
-=======
-    {{-- Profile Header & Actions --}}
+    {{-- Back Button & Actions --}}
     <div class="flex items-center justify-between mb-6">
         <a href="{{ route('athletes.index') }}" class="flex items-center gap-2 text-sm transition hover:text-opacity-80"
             style="color:#00E676">
             ← Kembali ke Data Atlet
         </a>
+        @if(in_array(auth()->user()->role, ['admin', 'fisio'], true))
         <div class="flex gap-2">
             <button onclick="editAthleteModal()"
                 class="px-4 py-2 rounded-lg text-sm font-semibold transition hover:-translate-y-px"
@@ -68,8 +23,8 @@
                 style="background:rgba(255,68,68,0.2); color:#FF4444">
                 Hapus
             </button>
->>>>>>> 0328b56 (Perbaikan autentikasi dan testing Laravel)
         </div>
+        @endif
     </div>
 
     @if (auth()->user()->role === 'pelatih')
