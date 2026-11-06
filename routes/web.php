@@ -57,11 +57,14 @@ Route::middleware(['auth'])->group(function () {
     /* ---- Athletes ---- */
     Route::get('/athletes', [AthleteController::class, 'index'])
         ->name('athletes.index')->middleware('role:fisio,pelatih');
+    Route::get('/athletes/{athlete}/edit', [AthleteController::class, 'edit'])
+        ->name('athletes.edit')->middleware('role:fisio');
     Route::get('/athletes/{id}', [AthleteController::class, 'show'])
         ->name('athletes.show')->middleware('role:fisio,pelatih');
 
     Route::post('/athletes', [AthleteController::class, 'store'])->name('athletes.store')->middleware('role:fisio');
-    Route::put('/athletes/{id}', [AthleteController::class, 'update'])->name('athletes.update')->middleware('role:fisio');
+    Route::match(['put', 'patch'], '/athletes/{athlete}', [AthleteController::class, 'update'])
+        ->name('athletes.update')->middleware('role:fisio');
     Route::delete('/athletes/{id}', [AthleteController::class, 'destroy'])->name('athletes.destroy')->middleware('role:fisio');
 
     /* ---- SCREENING FISIOTERAPI (Fisio & Admin) ---- */

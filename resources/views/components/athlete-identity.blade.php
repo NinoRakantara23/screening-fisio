@@ -16,10 +16,10 @@
                 <option value="">-- Pilih Atlet --</option>
                 @foreach($athletes as $athlete)
                     <option value="{{ $athlete->id }}" data-name="{{ $athlete->name }}" data-age="{{ $athlete->age }}"
-                        data-gender="{{ $athlete->gender }}" data-position="{{ $athlete->position }}"
+                        data-gender="{{ $athlete->gender }}" data-position="{{ $athlete->display_position }}"
                         data-height="{{ $athlete->height }}" data-weight="{{ $athlete->weight }}"
                         data-phone="{{ $athlete->phone }}" {{ $selected == $athlete->id ? 'selected' : '' }}>
-                        {{ $athlete->name }} — {{ $athlete->position }}
+                        {{ $athlete->name }} — {{ $athlete->display_position }}
                     </option>
                 @endforeach
             </select>
@@ -55,7 +55,7 @@
         <label>Posisi Pemain</label>
         <select name="position">
             <option value="">Pilih...</option>
-            @foreach(['Striker', 'Gelandang', 'Defender', 'Kiper', 'Winger', 'Playmaker'] as $pos)
+            @foreach(\App\Models\Athlete::POSITIONS as $pos)
                 <option value="{{ $pos }}" {{ old('position') == $pos ? 'selected' : '' }}>{{ $pos }}</option>
             @endforeach
         </select>

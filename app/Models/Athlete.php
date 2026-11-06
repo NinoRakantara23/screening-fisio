@@ -9,6 +9,8 @@ class Athlete extends Model
 {
     use HasFactory, SoftDeletes;
 
+    public const POSITIONS = ['Penyerang', 'Gelandang', 'Bek', 'Kiper'];
+
     protected $fillable = [
         'name',
         'birth_place',
@@ -25,6 +27,17 @@ class Athlete extends Model
     ];
 
     protected $casts = ['is_active' => 'boolean'];
+
+    public function getDisplayPositionAttribute(): ?string
+    {
+        return match (mb_strtolower(trim((string) $this->position))) {
+            'penyerang', 'striker', 'forward', 'winger', 'sayap' => 'Penyerang',
+            'gelandang', 'playmaker', 'midfielder' => 'Gelandang',
+            'bek', 'defender' => 'Bek',
+            'kiper', 'goalkeeper' => 'Kiper',
+            default => $this->position,
+        };
+    }
 
     public function testResults()
     {

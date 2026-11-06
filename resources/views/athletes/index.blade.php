@@ -62,7 +62,7 @@
                                 <td class="py-4 px-4">
                                     <span class="inline-block px-2 py-1 rounded text-xs font-semibold"
                                         style="background:rgba(79,195,247,0.1); color:#4FC3F7">
-                                        {{ $athlete->position ?? '-' }}
+                                        {{ $athlete->display_position ?? '-' }}
                                     </span>
                                 </td>
                                 <td class="py-4 px-4">{{ $athlete->age ?? '-' }} thn</td>
@@ -78,11 +78,11 @@
                                             Lihat
                                         </a>
                                         @if(in_array(auth()->user()->role, ['admin', 'fisio'], true))
-                                         <button onclick="editAthlete({{ $athlete->id }})"
+                                         <a href="{{ route('athletes.edit', $athlete) }}"
                                             class="px-3 py-1 rounded text-xs font-semibold transition hover:bg-opacity-80"
                                             style="background:rgba(255,152,0,0.2); color:#FFB74D">
                                             Edit
-                                        </button>
+                                        </a>
                                         <button onclick="deleteAthlete({{ $athlete->id }})"
                                             class="px-3 py-1 rounded text-xs font-semibold transition hover:bg-opacity-80"
                                             style="background:rgba(255,68,68,0.2); color:#FF4444">
@@ -164,10 +164,9 @@
                             class="w-full px-4 py-2 rounded-lg outline-none focus:ring-1 text-white"
                             style="background:#141B22; border:1px solid rgba(0,230,118,0.15); --tw-ring-color:#00E676">
                             <option value="">Pilih Posisi</option>
-                            <option value="Kiper" {{ old('position') === 'Kiper' ? 'selected' : '' }}>Kiper</option>
-                            <option value="Bek" {{ old('position') === 'Bek' ? 'selected' : '' }}>Bek</option>
-                            <option value="Gelandang" {{ old('position') === 'Gelandang' ? 'selected' : '' }}>Gelandang</option>
-                            <option value="Penyerang" {{ old('position') === 'Penyerang' ? 'selected' : '' }}>Penyerang</option>
+                            @foreach(\App\Models\Athlete::POSITIONS as $position)
+                                <option value="{{ $position }}" {{ old('position') === $position ? 'selected' : '' }}>{{ $position }}</option>
+                            @endforeach
                         </select>
                     </div>
 
@@ -285,6 +284,7 @@
             })
                 .then(response => response.json())
                 .then(athlete => {
+                    document.getElementById('athleteId').value = id;
                     document.getElementById('fieldName').value = athlete.name || '';
                     document.getElementById('fieldBirthPlace').value = athlete.birth_place || '';
                     document.getElementById('fieldBirthDate').value = athlete.birth_date || '';
@@ -343,6 +343,7 @@
 
         function resetForm() {
             document.getElementById('athleteForm').reset();
+            document.getElementById('athleteId').value = '';
             document.getElementById('errorAlert').classList.add('hidden');
             document.getElementById('errorList').innerHTML = '';
 

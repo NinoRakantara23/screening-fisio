@@ -19,33 +19,31 @@
 
     {{-- Controls --}}
     <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-
+        <form method="GET" action="{{ route('report.index') }}" id="filterForm" class="flex flex-wrap items-center gap-2">
+            <select name="position" aria-label="Filter posisi" class="text-sm px-3 py-2 rounded-lg outline-none"
+                style="background:#141B22; border:1px solid rgba(0,230,118,0.2); color:#E8F0F7"
+                onchange="this.form.submit()">
+                <option value="" {{ !$position ? 'selected' : '' }}>Semua Posisi</option>
+                @foreach(\App\Models\Athlete::POSITIONS as $positionOption)
+                    <option value="{{ $positionOption }}" {{ $position === $positionOption ? 'selected' : '' }}>{{ $positionOption }}</option>
+                @endforeach
+            </select>
+            <input name="date" type="date" value="{{ $date }}" aria-label="Filter tanggal tes"
+                class="text-sm px-3 py-2 rounded-lg outline-none"
+                style="background:#141B22; border:1px solid rgba(0,230,118,0.2); color:#E8F0F7"
+                onchange="this.form.submit()">
+            @if($position || $date)
+                <a href="{{ route('report.index') }}" class="px-3 py-2 rounded-lg text-sm font-semibold transition hover:opacity-80"
+                    style="color:#7A8D9E; border:1px solid rgba(122,141,158,0.25)">Reset</a>
+            @endif
+        </form>
         <div class="flex flex-wrap gap-2">
-            <form method="GET" action="{{ route('report.index') }}" id="filterForm" class="flex flex-wrap gap-2">
-                <select name="position" class="text-sm px-3 py-2 rounded-lg outline-none"
-                    style="background:#141B22; border:1px solid rgba(0,230,118,0.2); color:#E8F0F7"
-                    onchange="this.form.submit()">
-                    <option value="" {{ request('position') === null || request('position') === '' ? 'selected' : '' }}>Semua
-                        Posisi</option>
-                    <option value="Striker" {{ request('position') === 'Striker' ? 'selected' : '' }}>Striker</option>
-                    <option value="Gelandang" {{ request('position') === 'Gelandang' ? 'selected' : '' }}>Gelandang</option>
-                    <option value="Bek" {{ in_array(request('position'), ['Bek', 'Defender'], true) ? 'selected' : '' }}>Bek
-                    </option>
-                    <option value="Kiper" {{ request('position') === 'Kiper' ? 'selected' : '' }}>Kiper</option>
-                </select>
-                <input name="month" type="month" value="{{ request('month') }}"
-                    class="text-sm px-3 py-2 rounded-lg outline-none"
-                    style="background:#141B22; border:1px solid rgba(0,230,118,0.2); color:#E8F0F7"
-                    onchange="this.form.submit()">
-            </form>
-        </div>
-        <div class="flex flex-wrap gap-2">
-            <a href="{{ route('report.export.pdf') }}" target="_blank"
+            <a href="{{ route('report.export.pdf', request()->query()) }}" target="_blank"
                 class="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition hover:-translate-y-px"
                 style="background:rgba(255,68,68,0.15); color:#FF4444; border:1px solid rgba(255,68,68,0.3)">
                 📄 Export Semua PDF
             </a>
-            <a href="{{ route('report.export.excel') }}"
+            <a href="{{ route('report.export.excel', request()->query()) }}"
                 class="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition hover:-translate-y-px"
                 style="background:rgba(0,230,118,0.12); color:#00E676; border:1px solid rgba(0,230,118,0.3)">
                 📊 Export Excel
@@ -64,7 +62,7 @@
             <table class="w-full text-sm" style="min-width:1450px">
                 <thead>
                     <tr style="border-bottom:2px solid rgba(0,230,118,0.2)">
-                        @foreach(['Atlet', 'YoYo', 'Speed', 'Agility', 'Strength', 'Power', 'Akurasi', 'Reaksi', 'Koordinasi', 'Fleksibilitas', 'Balance', 'Tes', 'Aksi'] as $h)
+                        @foreach(['Atlet', 'Posisi', 'YoYo', 'Speed', 'Agility', 'Strength', 'Power', 'Akurasi', 'Reaksi', 'Koordinasi', 'Fleksibilitas', 'Balance', 'Tes', 'Aksi'] as $h)
                             <th class="text-left py-3 px-3 text-xs uppercase tracking-widest font-mono2" style="color:#00E676">
                                 {{ $h }}</th>
                         @endforeach
@@ -75,6 +73,7 @@
                         <tr style="border-bottom:1px solid rgba(0,230,118,0.08)" class="hover:bg-[#141B22] transition-colors"
                             data-athlete-id="{{ $report->athlete_id }}" data-athlete-name="{{ $report->athlete_name }}">
                             <td class="py-3 px-3 font-semibold">{{ $report->athlete_name }}</td>
+                            <td class="py-3 px-3"><span class="inline-block rounded px-2 py-1 text-xs font-semibold" style="background:rgba(79,195,247,0.1); color:#4FC3F7">{{ $report->position ?? '—' }}</span></td>
                             <td class="py-3 px-3">@if($report->yoyo_rating)<x-rating-badge
                             :rating="$report->yoyo_rating" />@else<span class="text-[#7A8D9E]">—</span>@endif</td>
                             <td class="py-3 px-3">@if($report->speed_rating)<x-rating-badge
@@ -110,8 +109,8 @@
 
                     @empty
                         <tr>
-                            <td colspan="13" class="py-10 text-center text-[#7A8D9E]">
-                                Belum ada data atlet dengan hasil tes. Silakan lakukan tes terlebih dahulu.
+                            <td colspan="14" class="py-10 text-center text-[#7A8D9E]">
+                                Tidak ada data untuk filter ini.
                             </td>
                         </tr>
                     @endforelse

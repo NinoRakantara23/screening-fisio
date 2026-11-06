@@ -15,6 +15,12 @@ class AthleteController extends Controller
         $athletes = Athlete::orderBy('name')->paginate(15);
         return view('athletes.index', compact('athletes'));
     }
+
+    public function edit(Athlete $athlete)
+    {
+        return view('athletes.edit', compact('athlete'));
+    }
+
     public function store(Request $request)
     {
         try {
@@ -24,7 +30,7 @@ class AthleteController extends Controller
                 'birth_date' => 'nullable|date|before_or_equal:today',
                 'age' => 'nullable|integer',
                 'gender' => 'nullable|string',
-                'position' => 'nullable|string',
+                'position' => 'nullable|in:' . implode(',', Athlete::POSITIONS),
                 'height' => 'nullable|numeric',
                 'weight' => 'nullable|numeric',
                 'phone' => 'nullable|string',
@@ -197,61 +203,55 @@ class AthleteController extends Controller
             'latestTestDate'
         ));
     }
-    public function update(Request $request, $id)
+    public function update(Request $request, Athlete $athlete)
     {
-        try {
-            $athlete = Athlete::findOrFail($id);
-            $data = $request->validate([
-                'name' => 'required|string|max:100',
-                'birth_place' => 'nullable|string|max:100',
-                'birth_date' => 'nullable|date|before_or_equal:today',
-                'age' => 'nullable|integer',
-                'gender' => 'nullable|string',
-                'position' => 'nullable|string',
-                'height' => 'nullable|numeric',
-                'weight' => 'nullable|numeric',
-                'phone' => 'nullable|string',
-                'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            ], [
-                'name.required' => 'Nama lengkap wajib diisi.',
-                'name.max' => 'Nama lengkap maksimal 100 karakter.',
-                'birth_place.max' => 'Tempat lahir maksimal 100 karakter.',
-                'birth_date.date' => 'Format tanggal lahir tidak valid.',
-                'birth_date.before_or_equal' => 'Tanggal lahir tidak boleh melewati hari ini.',
-                'age.integer' => 'Usia harus berupa angka bulat.',
-                'height.numeric' => 'Tinggi badan harus berupa angka.',
-                'weight.numeric' => 'Berat badan harus berupa angka.',
-                'photo.image' => 'Foto harus berupa file gambar.',
-                'photo.mimes' => 'Foto harus berformat JPG, JPEG, PNG, atau GIF.',
-                'photo.max' => 'Ukuran foto maksimal 2 MB.',
-            ]);
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+                'position' => 'required|in:' . implode(',', Athlete::POSITIONS),
+            'birth_place' => 'nullable|string|max:100',
+            'birth_date' => 'nullable|date|before_or_equal:today',
+            'age' => 'nullable|integer|min:0|max:100',
+            'gender' => 'nullable|in:M,F',
+            'height' => 'nullable|numeric|min:0',
+            'weight' => 'nullable|numeric|min:0',
+            'phone' => 'nullable|string|max:20',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ], [
+            'name.required' => 'Nama lengkap wajib diisi.',
+            'name.max' => 'Nama lengkap maksimal 255 karakter.',
+            'position.required' => 'Posisi wajib dipilih.',
+            'birth_date.date' => 'Format tanggal lahir tidak valid.',
+            'birth_date.before_or_equal' => 'Tanggal lahir tidak boleh melewati hari ini.',
+            'age.integer' => 'Usia harus berupa angka bulat.',
+            'height.numeric' => 'Tinggi badan harus berupa angka.',
+            'height.min' => 'Tinggi badan tidak boleh kurang dari 0.',
+            'weight.numeric' => 'Berat badan harus berupa angka.',
+            'weight.min' => 'Berat badan tidak boleh kurang dari 0.',
+            'phone.max' => 'Nomor telepon maksimal 20 karakter.',
+            'photo.image' => 'Foto harus berupa file gambar.',
+            'photo.mimes' => 'Foto harus berformat JPG, JPEG, PNG, atau GIF.',
+            'photo.max' => 'Ukuran foto maksimal 2 MB.',
+        ]);
 
-            // Handle photo upload
-            if ($request->hasFile('photo')) {
-                // Delete old photo if exists
-                if ($athlete->photo && str_starts_with($athlete->photo, 'uploads/athletes/') && file_exists(public_path($athlete->photo))) {
-                    unlink(public_path($athlete->photo));
-                }
-
-                $photo = $request->file('photo');
-                $photoName = Str::uuid() . '.' . $photo->extension();
-                $photo->move(public_path('uploads/athletes'), $photoName);
-                $data['photo'] = 'uploads/athletes/' . $photoName;
+        if ($request->hasFile('photo')) {
+            if ($athlete->photo && str_starts_with($athlete->photo, 'uploads/athletes/') && file_exists(public_path($athlete->photo))) {
+                unlink(public_path($athlete->photo));
             }
 
-            $athlete->update($data);
-
-            if ($request->wantsJson()) {
-                return response()->json(['success' => true, 'athlete' => $athlete]);
-            }
-
-            return redirect()->route('athletes.index')->with('success', 'Data atlet diperbarui!');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            if ($request->wantsJson()) {
-                return response()->json(['success' => false, 'errors' => $e->errors()], 422);
-            }
-            return back()->withErrors($e->errors())->withInput();
+            $photo = $request->file('photo');
+            $photoName = Str::uuid() . '.' . $photo->extension();
+            $photo->move(public_path('uploads/athletes'), $photoName);
+            $data['photo'] = 'uploads/athletes/' . $photoName;
         }
+
+        $athlete->update($data);
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'athlete' => $athlete]);
+        }
+
+        return redirect()->route('athletes.show', $athlete)
+            ->with('success', 'Data atlet berhasil diperbarui');
     }
     public function destroy($id)
     {

@@ -6,39 +6,14 @@ use App\Models\Athlete;
 use App\Models\TestResult;
 use App\Exports\ScreeningExcelExport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        // Apply filters: position and month
-        $position = $request->query('position');
-        $month = $request->query('month'); // Expecting YYYY-MM
-
-        // Validate month format before using it
-        $monthFilter = null;
-        if ($month && preg_match('/^\d{4}-\d{2}$/', $month)) {
-            $monthFilter = $month;
-        }
-
-        $athletesQuery = Athlete::query();
-        if ($position) {
-            $positionAliases = match (mb_strtolower(trim($position))) {
-                'bek', 'defender' => ['Bek', 'Defender'],
-                default => [$position],
-            };
-            $athletesQuery->whereIn('position', $positionAliases);
-        }
-        $athletes = $athletesQuery->orderBy('name')->get();
-
-        $testResultsQuery = TestResult::query()->latest('test_date');
-        if ($monthFilter) {
-            [$year, $mon] = explode('-', $monthFilter);
-            $testResultsQuery->whereYear('test_date', $year)
-                ->whereMonth('test_date', $mon);
-        }
-        $testResults = $testResultsQuery->get();
+        [$athletes, $testResults, $position, $date] = $this->filteredReportData($request);
 
         $resultsByAthleteId = $testResults->filter(fn($result) => $result->athlete_id)
             ->groupBy('athlete_id');
@@ -48,14 +23,11 @@ class ReportController extends Controller
         $reportResults = collect();
         $reports = $athletes->map(function ($athlete) use ($resultsByAthleteId, $resultsByLegacyName, &$reportResults) {
             $matchedResults = collect($resultsByAthleteId->get($athlete->id, []))
-                ->concat($resultsByLegacyName->get(mb_strtolower(trim($athlete->name)), collect()));
+                ->concat($resultsByLegacyName->get(mb_strtolower(trim($athlete->name)), collect()))
+                ->sortByDesc('test_date');
             $latestResults = $matchedResults
                 ->groupBy(fn($result) => mb_strtolower($result->test_type))
                 ->map(fn($results) => $results->first());
-
-            if ($latestResults->isEmpty()) {
-                return null;
-            }
 
             $reportResults = $reportResults->merge($latestResults->values());
             $ratingFor = function (string $type, array $fields = ['rating']) use ($latestResults) {
@@ -76,7 +48,7 @@ class ReportController extends Controller
             return (object) [
                 'athlete_id' => $athlete->id,
                 'athlete_name' => $athlete->name,
-                'position' => $athlete->position,
+                'position' => $athlete->display_position,
                 'yoyo_rating' => $ratingFor('endurance'),
                 'speed_rating' => $ratingFor('speed'),
                 'agility_rating' => $ratingFor('agility', ['hex_rating', 'ill_rating', 'rating']),
@@ -89,7 +61,7 @@ class ReportController extends Controller
                 'balance_rating' => $ratingFor('balance'),
                 'test_count' => $latestResults->count(),
             ];
-        })->filter()->values();
+        })->values();
 
         $average = fn($field, $suffix, $decimals = 1) => $reportResults->pluck($field)
             ->filter(fn($value) => is_numeric($value))
@@ -105,7 +77,47 @@ class ReportController extends Controller
             ['value' => $average('value_cm', 'cm', 1), 'label' => 'Reaksi Avg', 'color' => '#FF4444'],
         ];
 
-        return view('report.index', compact('reports', 'position', 'month', 'summaryStats'));
+        return view('report.index', compact('reports', 'position', 'date', 'summaryStats'));
+    }
+
+    private function filteredReportData(Request $request): array
+    {
+        $filters = $request->validate([
+            'position' => ['nullable', 'string', 'in:' . implode(',', Athlete::POSITIONS)],
+            'date' => ['nullable', 'date_format:Y-m-d'],
+        ]);
+        $position = $filters['position'] ?? null;
+        $date = $filters['date'] ?? null;
+
+        $athletesQuery = Athlete::query();
+        if ($position) {
+            $positionAliases = match ($position) {
+                'Penyerang' => ['Penyerang', 'Striker', 'Forward', 'Winger', 'Sayap'],
+                'Gelandang' => ['Gelandang', 'Playmaker', 'Midfielder'],
+                'Bek' => ['Bek', 'Defender'],
+                default => [$position],
+            };
+            $athletesQuery->whereIn('position', $positionAliases);
+        }
+        $athletes = $athletesQuery->orderBy('name')->get();
+
+        $athleteIds = $athletes->pluck('id');
+        $athleteNames = $athletes->pluck('name');
+        $testResultsQuery = TestResult::query()
+            ->where(function ($query) use ($athleteIds, $athleteNames) {
+                $query->whereIn('athlete_id', $athleteIds)
+                    ->orWhere(function ($legacyQuery) use ($athleteNames) {
+                        $legacyQuery->whereNull('athlete_id')
+                            ->whereIn('name', $athleteNames);
+                    });
+            })
+            ->latest('test_date');
+
+        if ($date) {
+            $testResultsQuery->whereDate('test_date', $date);
+        }
+
+        return [$athletes, $testResultsQuery->get(), $position, $date];
     }
 
     public function exportPdf(Request $request)
@@ -117,8 +129,8 @@ class ReportController extends Controller
             // Export PDF for specific athlete
             return $this->exportSingleAthletePdf($athleteName);
         } else {
-            // Export PDF for all athletes
-            return $this->exportAllAthletesPdf();
+            [, $testResults] = $this->filteredReportData($request);
+            return $this->exportAllAthletesPdf($testResults);
         }
     }
 
@@ -150,10 +162,8 @@ class ReportController extends Controller
         return $pdf->download("laporan-screening-{$athleteName}.pdf");
     }
 
-    private function exportAllAthletesPdf()
+    private function exportAllAthletesPdf(Collection $allResults)
     {
-        // Get all athletes with their test results
-        $allResults = TestResult::orderBy('name')->latest('test_date')->get();
         $athletesData = [];
 
         // Group by athlete name
@@ -179,9 +189,9 @@ class ReportController extends Controller
         return $pdf->download("laporan-screening-semua-atlet.pdf");
     }
 
-    public function exportExcel()
+    public function exportExcel(Request $request)
     {
-        $results = TestResult::orderBy('id')->get();
+        [, $results] = $this->filteredReportData($request);
         $xlsxPath = app(ScreeningExcelExport::class)->create($results);
         $filename = 'laporan-screening-' . now()->format('Y-m-d') . '.xlsx';
 

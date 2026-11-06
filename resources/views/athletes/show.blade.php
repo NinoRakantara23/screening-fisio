@@ -5,6 +5,12 @@
 
 @section('content')
 
+    @if (session('success'))
+        <div class="mb-6 rounded-lg px-4 py-3 text-sm font-semibold" style="background:rgba(0,230,118,0.12); border:1px solid rgba(0,230,118,0.3); color:#00E676">
+            {{ session('success') }}
+        </div>
+    @endif
+
     {{-- Back Button & Actions --}}
     <div class="flex items-center justify-between mb-6">
         <a href="{{ route('athletes.index') }}" class="flex items-center gap-2 text-sm transition hover:text-opacity-80"
@@ -13,11 +19,11 @@
         </a>
         @if(in_array(auth()->user()->role, ['admin', 'fisio'], true))
         <div class="flex gap-2">
-            <button onclick="editAthleteModal()"
+            <a href="{{ route('athletes.edit', $athlete) }}"
                 class="px-4 py-2 rounded-lg text-sm font-semibold transition hover:-translate-y-px"
                 style="background:rgba(255,152,0,0.2); color:#FFB74D">
                 Edit Data
-            </button>
+            </a>
             <button onclick="deleteAthlete({{ $athlete->id }})"
                 class="px-4 py-2 rounded-lg text-sm font-semibold transition hover:-translate-y-px"
                 style="background:rgba(255,68,68,0.2); color:#FF4444">
@@ -434,24 +440,6 @@
 
 @push('scripts')
     <script>
-        // Modal untuk edit
-        function editAthleteModal() {
-            const modal = document.getElementById('editModal');
-            if (modal) {
-                document.getElementById('editName').value = '{{ $athlete->name }}';
-                document.getElementById('editPosition').value = '{{ $athlete->position }}';
-                document.getElementById('editAge').value = '{{ $athlete->age }}';
-                document.getElementById('editGender').value = '{{ $athlete->gender }}';
-                document.getElementById('editHeight').value = '{{ $athlete->height }}';
-                document.getElementById('editWeight').value = '{{ $athlete->weight }}';
-                document.getElementById('editPhone').value = '{{ $athlete->phone }}';
-                modal.classList.remove('hidden');
-            } else {
-                // Redirect ke halaman edit jika modal tidak ada
-                alert('Fitur edit akan datang segera');
-            }
-        }
-
         function deleteAthlete(id) {
             if (confirm('Apakah Anda yakin ingin menghapus data atlet ini? Data tidak dapat dipulihkan!')) {
                 const form = document.createElement('form');
