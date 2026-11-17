@@ -113,7 +113,7 @@
                         route="athletes.index"
                         icon="👥"
                         label="Data Atlet"
-                        :badge="$incompleteAthletes ?? 0" />
+                        :badge="$totalAthletes ?? 0" />
 
                 @endif
             </div>

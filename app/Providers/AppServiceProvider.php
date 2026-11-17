@@ -31,13 +31,8 @@ class AppServiceProvider extends ServiceProvider
             $this->app->alias('Maatwebsite\Excel\Facades\Excel', 'Excel');
         }
 
-        // Share jumlah atlet yang belum menyelesaikan progres ke semua view
-        View::composer('*', function ($view) {
-            $incompleteAthletes = Athlete::whereRaw('
-                (SELECT COUNT(DISTINCT test_type) FROM test_results WHERE athlete_id = athletes.id) < 10
-            ')->count();
-
-            $view->with('incompleteAthletes', $incompleteAthletes);
+        View::composer('layouts.app', function ($view) {
+            $view->with('totalAthletes', Athlete::count());
         });
     }
 }
