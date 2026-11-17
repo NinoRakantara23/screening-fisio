@@ -62,7 +62,7 @@
             <table class="w-full text-sm" style="min-width:1450px">
                 <thead>
                     <tr style="border-bottom:2px solid rgba(0,230,118,0.2)">
-                        @foreach(['Atlet', 'Posisi', 'YoYo', 'Speed', 'Agility', 'Strength', 'Power', 'Akurasi', 'Reaksi', 'Koordinasi', 'Fleksibilitas', 'Balance', 'Tes', 'Aksi'] as $h)
+                        @foreach(['Atlet', 'Posisi', 'Yo-Yo', 'Kecepatan', 'Kelincahan', 'Kekuatan', 'Daya Ledak', 'Akurasi', 'Reaksi', 'Koordinasi', 'Kelenturan', 'Keseimbangan', 'Tes', 'Aksi'] as $h)
                             <th class="text-left py-3 px-3 text-xs uppercase tracking-widest font-mono2" style="color:#00E676">
                                 {{ $h }}</th>
                         @endforeach

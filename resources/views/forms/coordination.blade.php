@@ -5,11 +5,11 @@
         class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm mb-5 hover:text-white"
         style="border:1px solid rgba(0,230,118,0.2); color:#7A8D9E">← Kembali</a>
     <div class="max-w-3xl mx-auto rounded-xl p-7" style="background:#0E1419; border:1px solid rgba(0,230,118,0.15)">
-        <x-form-header icon="🌀" title="FUKUDA STEP TEST — KOORDINASI"
-            subtitle="Unterberger Test — Mengukur koordinasi & keseimbangan dinamis" tag="COORDINATION" tagColor="cyan" />
+        <x-form-header icon="🌀" title="TES LANGKAH FUKUDA — KOORDINASI"
+            subtitle="Mengukur koordinasi gerak dan keseimbangan dinamis" tag="KOORDINASI" tagColor="cyan" />
         <form action="{{ route('forms.coordination.store') }}" method="POST">@csrf
             <x-athlete-identity :athletes="$athletes ?? []" :withVitals="false" />
-            <x-section-title title="Hasil Fukuda Step Test" />
+            <x-section-title title="Hasil Tes Langkah Fukuda" />
             <div class="overflow-x-auto mb-4">
                 <table class="w-full text-sm norma-table">
                     <thead>
@@ -22,35 +22,31 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong>50 Steps</strong></td>
+                            <td><strong>50 Langkah</strong></td>
                             <td>&lt; 30°</td>
                             <td><input type="number" name="steps50" value="{{ old('steps50') }}" step="0.1" placeholder="°"
                                     class="table-input"></td>
-                            <td><select name="steps50_result" class="table-select">
-                                    <option value="">Pilih...</option>
-                                    <option value="normal" {{ old('steps50_result') == 'normal' ? 'selected' : '' }}>Normal ✓
-                                    </option>
-                                    <option value="abnormal" {{ old('steps50_result') == 'abnormal' ? 'selected' : '' }}>Abnormal
-                                        ✗</option>
-                                </select></td>
+                            <td>
+                                <input type="text" id="steps50Display" class="table-input" readonly>
+                                <input type="hidden" name="steps50_result" id="steps50Result"
+                                    value="{{ old('steps50_result') }}">
+                            </td>
                         </tr>
                         <tr>
-                            <td><strong>100 Steps</strong></td>
+                            <td><strong>100 Langkah</strong></td>
                             <td>&lt; 45°</td>
                             <td><input type="number" name="steps100" value="{{ old('steps100') }}" step="0.1"
                                     placeholder="°" class="table-input"></td>
-                            <td><select name="steps100_result" class="table-select">
-                                    <option value="">Pilih...</option>
-                                    <option value="normal" {{ old('steps100_result') == 'normal' ? 'selected' : '' }}>Normal ✓
-                                    </option>
-                                    <option value="abnormal" {{ old('steps100_result') == 'abnormal' ? 'selected' : '' }}>Abnormal
-                                        ✗</option>
-                                </select></td>
+                            <td>
+                                <input type="text" id="steps100Display" class="table-input" readonly>
+                                <input type="hidden" name="steps100_result" id="steps100Result"
+                                    value="{{ old('steps100_result') }}">
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <div class="form-group mb-4"><label>Arah Rotasi</label>
+            <div class="form-group mb-4"><label>Arah Putaran</label>
                 <select name="rotation_direction">
                     <option value="">Pilih...</option>
                     @foreach(['Kanan', 'Kiri', 'Tidak ada rotasi signifikan'] as $d)
@@ -71,3 +67,27 @@
         </form>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const updateResult = (inputName, displayId, resultId, limit) => {
+                const value = document.querySelector(`[name="${inputName}"]`).value;
+                const result = document.getElementById(resultId);
+                const display = document.getElementById(displayId);
+                result.value = value === '' ? '' : (Number(value) < limit ? 'normal' : 'abnormal');
+                display.value = result.value === '' ? ''
+                    : result.value === 'normal' ? 'Normal' : 'Tidak Normal';
+            };
+            const update = () => {
+                updateResult('steps50', 'steps50Display', 'steps50Result', 30);
+                updateResult('steps100', 'steps100Display', 'steps100Result', 45);
+            };
+
+            ['steps50', 'steps100'].forEach(name =>
+                document.querySelector(`[name="${name}"]`).addEventListener('input', update)
+            );
+            update();
+        });
+    </script>
+@endpush

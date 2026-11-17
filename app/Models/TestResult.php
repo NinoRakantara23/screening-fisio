@@ -123,31 +123,31 @@ class TestResult extends Model
     public function getTestTypeLabelAttribute(): string
     {
         return [
-            'endurance' => 'Endurance (YoYo)',
-            'speed' => 'Speed 50 Meter',
-            'agility' => 'Agility',
-            'strength' => 'Strength',
-            'power' => 'Power Jump',
+            'endurance' => 'Daya Tahan Yo-Yo',
+            'speed' => 'Lari Sprint 50 Meter',
+            'agility' => 'Kelincahan',
+            'strength' => 'Kekuatan Otot',
+            'power' => 'Daya Ledak (Lompat Jauh)',
             'accuracy' => 'Akurasi Tendangan',
             'reaction' => 'Kecepatan Reaksi',
-            'coordination' => 'Koordinasi',
-            'flexibility' => 'Fleksibilitas Ankle',
-            'balance' => 'Y Balance',
+            'coordination' => 'Koordinasi Gerak',
+            'flexibility' => 'Kelenturan Pergelangan Kaki',
+            'balance' => 'Keseimbangan Y',
         ][$this->test_type] ?? ucfirst((string) $this->test_type);
     }
 
     public function getDisplayResultsAttribute(): array
     {
         $values = match ($this->test_type) {
-            'endurance' => ['Jarak' => $this->distance !== null ? $this->distance . ' m' : null, 'Level' => $this->level],
-            'speed' => ['Waktu' => $this->time_seconds !== null ? $this->time_seconds . ' detik' : null, 'Skor' => $this->score !== null ? $this->score . '/5' : null, 'Kriteria' => $this->rating],
-            'agility' => ['Hexagonal' => $this->hex_avg !== null ? $this->hex_avg . ' detik' : null, 'Illinois' => $this->ill_time !== null ? $this->ill_time . ' detik' : null],
-            'strength' => ['Push-up' => $this->pushup_count !== null ? $this->pushup_count . ' kali' : null, 'Sit-up' => $this->situp_count !== null ? $this->situp_count . ' kali' : null],
+            'endurance' => ['Jarak tempuh' => $this->distance !== null ? $this->distance . ' m' : null, 'Tingkatan' => $this->level],
+            'speed' => ['Waktu' => $this->time_seconds !== null ? $this->time_seconds . ' detik' : null, 'Skor' => $this->score !== null ? $this->score . '/5' : null, 'Kriteria' => $this->ratingLabel($this->rating)],
+            'agility' => ['Rata-rata Hexagonal' => $this->hex_avg !== null ? $this->hex_avg . ' detik' : null, 'Waktu Illinois' => $this->ill_time !== null ? $this->ill_time . ' detik' : null],
+            'strength' => ['Tekan tubuh' => $this->pushup_count !== null ? $this->pushup_count . ' kali' : null, 'Duduk-baring' => $this->situp_count !== null ? $this->situp_count . ' kali' : null],
             'power', 'flexibility' => ['Hasil terbaik' => $this->best !== null ? $this->best . ' cm' : null],
             'accuracy' => ['Total poin' => $this->total_score],
-            'reaction' => ['Jarak reaksi' => $this->value_cm !== null ? $this->value_cm . ' cm' : null],
-            'coordination' => ['50 langkah' => $this->steps50 !== null ? $this->steps50 . '°' : null, '100 langkah' => $this->steps100 !== null ? $this->steps100 . '°' : null, 'Arah rotasi' => $this->rotation_direction],
-            'balance' => ['Composite kiri' => $this->composite_left, 'Composite kanan' => $this->composite_right],
+            'reaction' => ['Jarak jatuh penggaris' => $this->value_cm !== null ? $this->value_cm . ' cm' : null],
+            'coordination' => ['50 langkah' => $this->steps50 !== null ? $this->steps50 . '°' : null, '100 langkah' => $this->steps100 !== null ? $this->steps100 . '°' : null, 'Arah putaran' => $this->rotation_direction],
+            'balance' => ['Skor gabungan kiri' => $this->composite_left, 'Skor gabungan kanan' => $this->composite_right],
             default => [],
         };
 
@@ -164,11 +164,38 @@ class TestResult extends Model
     public function getDisplayRatingsAttribute(): array
     {
         $ratings = match ($this->test_type) {
-            'agility' => ['Hexagonal' => $this->hex_rating, 'Illinois' => $this->ill_rating],
-            'strength' => ['Push-up' => $this->pushup_rating, 'Sit-up' => $this->situp_rating],
+            'agility' => ['Tes Hexagonal' => $this->hex_rating, 'Tes Illinois' => $this->ill_rating],
+            'strength' => ['Tekan tubuh' => $this->pushup_rating, 'Duduk-baring' => $this->situp_rating],
+            'coordination' => ['50 langkah' => $this->steps50_result, '100 langkah' => $this->steps100_result],
+            'balance' => ['Keseimbangan' => $this->std_composite],
             default => ['Rating' => $this->rating],
         };
 
         return array_filter($ratings, fn($rating) => $rating !== null && $rating !== '');
+    }
+
+    private function ratingLabel(?string $rating): ?string
+    {
+        if ($rating === null) {
+            return null;
+        }
+
+        return [
+            'elite' => 'Elit',
+            'excellent' => 'Sangat Baik',
+            'very good' => 'Sangat Baik',
+            'good' => 'Baik',
+            'above average' => 'Di Atas Rata-rata',
+            'average' => 'Rata-rata',
+            'fair' => 'Cukup',
+            'below average' => 'Di Bawah Rata-rata',
+            'below' => 'Di Bawah Rata-rata',
+            'weak' => 'Lemah',
+            'poor' => 'Buruk',
+            'very poor' => 'Sangat Buruk',
+            'normal' => 'Normal',
+            'abnormal' => 'Tidak Normal',
+            'optimal' => 'Optimal',
+        ][mb_strtolower(trim($rating))] ?? $rating;
     }
 }

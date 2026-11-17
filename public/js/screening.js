@@ -64,9 +64,13 @@ function fillAthleteData(select) {
                 allowedValues.includes(option.value.toLowerCase()),
             );
 
-            if (matchingOption) el.value = matchingOption.value;
+            if (matchingOption) {
+                el.value = matchingOption.value;
+                el.dispatchEvent(new Event("change", { bubbles: true }));
+            }
         } else {
             el.value = val;
+            el.dispatchEvent(new Event("input", { bubbles: true }));
         }
     });
 

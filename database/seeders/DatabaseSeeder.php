@@ -52,6 +52,8 @@ class DatabaseSeeder extends Seeder
             \App\Models\Athlete::firstOrCreate(['name' => $data['name']], $data);
         }
 
+        $this->call(PlayerSeeder::class);
+
         $this->command->info('✅ Seeder selesai.');
         $this->command->info('📋 Akun Admin: admin@footscreen.com / password123');
         $this->command->info('🏥 Akun Fisio: fisio@footscreen.com / password123');

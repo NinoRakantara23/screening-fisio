@@ -5,11 +5,62 @@ use App\Models\Athlete;
 use App\Models\MentalAssessment;
 use App\Models\TaktikAssessment;
 use App\Models\TestResult;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class AthleteController extends Controller
 {
+    private function normalizedPhone(?string $phone, ?User $player = null): ?string
+    {
+        if ($phone === null || trim($phone) === '') {
+            return null;
+        }
+
+        $phone = User::normalizePhone($phone);
+        Validator::make(
+            ['phone' => $phone],
+            [
+                'phone' => [
+                    'required',
+                    'regex:/^0[0-9]{8,14}$/',
+                    Rule::unique('users', 'phone')->ignore($player?->id),
+                ],
+            ],
+            [
+                'phone.regex' => 'Nomor HP harus berupa nomor Indonesia yang valid.',
+                'phone.unique' => 'Nomor HP tersebut sudah digunakan akun lain.',
+            ]
+        )->validate();
+
+        return $phone;
+    }
+
+    private function syncPlayerAccount(Athlete $athlete): void
+    {
+        if (!$athlete->phone) {
+            return;
+        }
+
+        $player = User::firstOrNew(['athlete_id' => $athlete->id]);
+        $isNewPlayer = !$player->exists;
+        $player->fill([
+            'name' => $athlete->name,
+            'phone' => $athlete->phone,
+            'role' => 'pemain',
+        ]);
+
+        if ($isNewPlayer) {
+            $player->email = $athlete->phone . '@pemain.footscreen.com';
+            $player->password = $athlete->phone;
+        }
+
+        $player->save();
+    }
+
     public function index()
     {
         $athletes = Athlete::orderBy('name')->paginate(15);
@@ -33,7 +84,7 @@ class AthleteController extends Controller
                 'position' => 'nullable|in:' . implode(',', Athlete::POSITIONS),
                 'height' => 'nullable|numeric',
                 'weight' => 'nullable|numeric',
-                'phone' => 'nullable|string',
+                'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\s().-]+$/'],
                 'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ], [
                 'name.required' => 'Nama lengkap wajib diisi.',
@@ -44,10 +95,13 @@ class AthleteController extends Controller
                 'age.integer' => 'Usia harus berupa angka bulat.',
                 'height.numeric' => 'Tinggi badan harus berupa angka.',
                 'weight.numeric' => 'Berat badan harus berupa angka.',
+                'phone.regex' => 'Format nomor HP tidak valid.',
                 'photo.image' => 'Foto harus berupa file gambar.',
                 'photo.mimes' => 'Foto harus berformat JPG, JPEG, PNG, atau GIF.',
                 'photo.max' => 'Ukuran foto maksimal 2 MB.',
             ]);
+
+            $data['phone'] = $this->normalizedPhone($data['phone'] ?? null);
 
             // Handle photo upload
             if ($request->hasFile('photo')) {
@@ -57,13 +111,27 @@ class AthleteController extends Controller
                 $data['photo'] = 'uploads/athletes/' . $photoName;
             }
 
-            $athlete = Athlete::create($data);
+            $athlete = DB::transaction(function () use ($data) {
+                $athlete = Athlete::create($data);
+                $this->syncPlayerAccount($athlete);
+
+                return $athlete;
+            });
 
             if ($request->wantsJson()) {
-                return response()->json(['success' => true, 'athlete' => $athlete]);
+                return response()->json([
+                    'success' => true,
+                    'athlete' => $athlete,
+                    'player_account_created' => (bool) $athlete->phone,
+                ]);
             }
 
-            return redirect()->route('athletes.index')->with('success', 'Atlet berhasil ditambahkan!');
+            $message = 'Atlet berhasil ditambahkan!';
+            if ($athlete->phone) {
+                $message .= ' Akun pemain dibuat; kata sandi awal sama dengan nomor HP.';
+            }
+
+            return redirect()->route('athletes.index')->with('success', $message);
         } catch (\Illuminate\Validation\ValidationException $e) {
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'errors' => $e->errors()], 422);
@@ -135,9 +203,9 @@ class AthleteController extends Controller
             })->all();
         $radarDefinitions = [
             'endurance' => ['label' => 'YoYo', 'color' => '#00E676', 'score' => $ratingScore($latestByType->get('endurance')?->rating)],
-            'speed' => ['label' => 'Speed 50m', 'color' => '#FFD740', 'score' => $ratingScore($latestByType->get('speed')?->rating)],
+            'speed' => ['label' => 'Lari 50 meter', 'color' => '#FFD740', 'score' => $ratingScore($latestByType->get('speed')?->rating)],
             'agility' => [
-                'label' => 'Agility',
+                'label' => 'Kelincahan',
                 'color' => '#40C4FF',
                 'score' => $averageScore([
                     $ratingScore($latestByType->get('agility')?->hex_rating),
@@ -146,7 +214,7 @@ class AthleteController extends Controller
                 ])
             ],
             'strength' => [
-                'label' => 'Strength',
+                'label' => 'Kekuatan',
                 'color' => '#FF6E6E',
                 'score' => $averageScore([
                     $ratingScore($latestByType->get('strength')?->pushup_rating),
@@ -154,12 +222,12 @@ class AthleteController extends Controller
                     $ratingScore($latestByType->get('strength')?->rating),
                 ])
             ],
-            'power' => ['label' => 'Power Jump', 'color' => '#FFAB40', 'score' => $ratingScore($latestByType->get('power')?->rating)],
+            'power' => ['label' => 'Daya ledak', 'color' => '#FFAB40', 'score' => $ratingScore($latestByType->get('power')?->rating)],
             'accuracy' => ['label' => 'Akurasi', 'color' => '#26C6DA', 'score' => $ratingScore($latestByType->get('accuracy')?->rating)],
             'reaction' => ['label' => 'Reaksi', 'color' => '#F06292', 'score' => $ratingScore($latestByType->get('reaction')?->rating)],
             'coordination' => ['label' => 'Koordinasi', 'color' => '#B39DDB', 'score' => $averageScore($coordinationScores)],
             'flexibility' => ['label' => 'Fleksibilitas', 'color' => '#AED581', 'score' => $ratingScore($latestByType->get('flexibility')?->rating)],
-            'balance' => ['label' => 'Balance', 'color' => '#FF8A65', 'score' => $ratingScore($balance?->std_composite ?? $balance?->rating)],
+            'balance' => ['label' => 'Keseimbangan', 'color' => '#FF8A65', 'score' => $ratingScore($balance?->std_composite ?? $balance?->rating)],
         ];
         $radarStats = collect($radarDefinitions)->values();
         $ratedTestCount = $radarStats->whereNotNull('score')->count();
@@ -205,53 +273,75 @@ class AthleteController extends Controller
     }
     public function update(Request $request, Athlete $athlete)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-                'position' => 'required|in:' . implode(',', Athlete::POSITIONS),
-            'birth_place' => 'nullable|string|max:100',
-            'birth_date' => 'nullable|date|before_or_equal:today',
-            'age' => 'nullable|integer|min:0|max:100',
-            'gender' => 'nullable|in:M,F',
-            'height' => 'nullable|numeric|min:0',
-            'weight' => 'nullable|numeric|min:0',
-            'phone' => 'nullable|string|max:20',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ], [
-            'name.required' => 'Nama lengkap wajib diisi.',
-            'name.max' => 'Nama lengkap maksimal 255 karakter.',
-            'position.required' => 'Posisi wajib dipilih.',
-            'birth_date.date' => 'Format tanggal lahir tidak valid.',
-            'birth_date.before_or_equal' => 'Tanggal lahir tidak boleh melewati hari ini.',
-            'age.integer' => 'Usia harus berupa angka bulat.',
-            'height.numeric' => 'Tinggi badan harus berupa angka.',
-            'height.min' => 'Tinggi badan tidak boleh kurang dari 0.',
-            'weight.numeric' => 'Berat badan harus berupa angka.',
-            'weight.min' => 'Berat badan tidak boleh kurang dari 0.',
-            'phone.max' => 'Nomor telepon maksimal 20 karakter.',
-            'photo.image' => 'Foto harus berupa file gambar.',
-            'photo.mimes' => 'Foto harus berformat JPG, JPEG, PNG, atau GIF.',
-            'photo.max' => 'Ukuran foto maksimal 2 MB.',
-        ]);
+        try {
+            $player = User::where('athlete_id', $athlete->id)->first();
+            $data = $request->validate([
+                'name' => 'required|string|max:255',
+                'birth_place' => 'nullable|string|max:100',
+                'birth_date' => 'nullable|date|before_or_equal:today',
+                'age' => 'nullable|integer|min:0|max:100',
+                'gender' => 'nullable|in:M,F',
+                'position' => ['required', Rule::in(Athlete::POSITIONS)],
+                'height' => 'nullable|numeric|min:0',
+                'weight' => 'nullable|numeric|min:0',
+                'phone' => [
+                    $player ? 'required' : 'nullable',
+                    'string',
+                    'max:20',
+                    'regex:/^[0-9+\s().-]+$/',
+                ],
+                'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ], [
+                'name.required' => 'Nama lengkap wajib diisi.',
+                'name.max' => 'Nama lengkap maksimal 255 karakter.',
+                'birth_place.max' => 'Tempat lahir maksimal 100 karakter.',
+                'birth_date.date' => 'Format tanggal lahir tidak valid.',
+                'birth_date.before_or_equal' => 'Tanggal lahir tidak boleh melewati hari ini.',
+                'age.integer' => 'Usia harus berupa angka bulat.',
+                'position.required' => 'Posisi wajib dipilih.',
+                'position.in' => 'Posisi yang dipilih tidak valid.',
+                'height.numeric' => 'Tinggi badan harus berupa angka.',
+                'height.min' => 'Tinggi badan tidak boleh kurang dari 0.',
+                'weight.numeric' => 'Berat badan harus berupa angka.',
+                'weight.min' => 'Berat badan tidak boleh kurang dari 0.',
+                'phone.max' => 'Nomor telepon maksimal 20 karakter.',
+                'phone.required' => 'Nomor HP wajib diisi untuk akun pemain.',
+                'phone.regex' => 'Format nomor HP tidak valid.',
+                'photo.image' => 'Foto harus berupa file gambar.',
+                'photo.mimes' => 'Foto harus berformat JPG, JPEG, PNG, atau GIF.',
+                'photo.max' => 'Ukuran foto maksimal 2 MB.',
+            ]);
 
-        if ($request->hasFile('photo')) {
-            if ($athlete->photo && str_starts_with($athlete->photo, 'uploads/athletes/') && file_exists(public_path($athlete->photo))) {
-                unlink(public_path($athlete->photo));
+            $data['phone'] = $this->normalizedPhone($data['phone'] ?? null, $player);
+
+            if ($request->hasFile('photo')) {
+                if ($athlete->photo && str_starts_with($athlete->photo, 'uploads/athletes/') && file_exists(public_path($athlete->photo))) {
+                    unlink(public_path($athlete->photo));
+                }
+
+                $photo = $request->file('photo');
+                $photoName = Str::uuid() . '.' . $photo->extension();
+                $photo->move(public_path('uploads/athletes'), $photoName);
+                $data['photo'] = 'uploads/athletes/' . $photoName;
             }
 
-            $photo = $request->file('photo');
-            $photoName = Str::uuid() . '.' . $photo->extension();
-            $photo->move(public_path('uploads/athletes'), $photoName);
-            $data['photo'] = 'uploads/athletes/' . $photoName;
+            DB::transaction(function () use ($athlete, $data) {
+                $athlete->update($data);
+                $this->syncPlayerAccount($athlete);
+            });
+
+            if ($request->wantsJson()) {
+                return response()->json(['success' => true, 'athlete' => $athlete]);
+            }
+
+            return redirect()->route('athletes.show', $athlete)
+                ->with('success', 'Data atlet berhasil diperbarui');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'errors' => $e->errors()], 422);
+            }
+            return back()->withErrors($e->errors())->withInput();
         }
-
-        $athlete->update($data);
-
-        if ($request->wantsJson()) {
-            return response()->json(['success' => true, 'athlete' => $athlete]);
-        }
-
-        return redirect()->route('athletes.show', $athlete)
-            ->with('success', 'Data atlet berhasil diperbarui');
     }
     public function destroy($id)
     {

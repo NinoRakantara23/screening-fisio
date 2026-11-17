@@ -37,7 +37,7 @@
                         <th class="text-left py-3 px-3 text-xs uppercase tracking-widest font-mono2" style="color:#00E676">
                             Tanggal</th>
                         <th class="text-left py-3 px-3 text-xs uppercase tracking-widest font-mono2" style="color:#00E676">
-                            Rating</th>
+                            Penilaian</th>
                         <th class="text-left py-3 px-3 text-xs uppercase tracking-widest font-mono2" style="color:#00E676">
                             Detail</th>
                     </tr>

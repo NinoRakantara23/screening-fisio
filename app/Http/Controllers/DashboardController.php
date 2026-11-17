@@ -23,16 +23,16 @@ class DashboardController extends Controller
         $totalAthletes = Athlete::count();
 
         $physicalTestTypes = [
-            'endurance' => ['label' => 'Endurance', 'color' => '#00E676'],
-            'speed' => ['label' => 'Speed', 'color' => '#FFD740'],
-            'agility' => ['label' => 'Agility', 'color' => '#40C4FF'],
-            'strength' => ['label' => 'Strength', 'color' => '#FF6E6E'],
-            'power' => ['label' => 'Power', 'color' => '#FFAB40'],
+            'endurance' => ['label' => 'Daya Tahan', 'color' => '#00E676'],
+            'speed' => ['label' => 'Kecepatan', 'color' => '#FFD740'],
+            'agility' => ['label' => 'Kelincahan', 'color' => '#40C4FF'],
+            'strength' => ['label' => 'Kekuatan', 'color' => '#FF6E6E'],
+            'power' => ['label' => 'Daya Ledak', 'color' => '#FFAB40'],
             'accuracy' => ['label' => 'Akurasi', 'color' => '#26C6DA'],
             'reaction' => ['label' => 'Reaksi', 'color' => '#F06292'],
             'coordination' => ['label' => 'Koordinasi', 'color' => '#B39DDB'],
             'flexibility' => ['label' => 'Fleksibilitas', 'color' => '#AED581'],
-            'balance' => ['label' => 'Balance', 'color' => '#FF8A65'],
+            'balance' => ['label' => 'Keseimbangan', 'color' => '#FF8A65'],
         ];
         $typesOfTests = ($includePhysical ? count($physicalTestTypes) : 0) + ($includeCoachAssessments ? 2 : 0);
 

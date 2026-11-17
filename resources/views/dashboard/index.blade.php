@@ -50,10 +50,10 @@
 
         <section class="dashboard-metrics {{ $isCoach ? 'coach-metrics' : ($isAdmin ? 'admin-metrics' : '') }}" aria-label="Ringkasan hasil tes">
             @unless($isCoach)
-                <x-stat-card icon="🏃" value="{{ $avgYoyo }}" label="Rata-rata YoYo" delta="Real-time" color="green" />
-                <x-stat-card icon="⚡" value="{{ $bestSpeed }}" label="Speed 50M terbaik" delta="Real-time" color="yellow" />
-                <x-stat-card icon="🔄" value="{{ $avgAgility }}" label="Agility rata-rata" delta="Real-time" color="blue" />
-                <x-stat-card icon="💪" value="{{ $maxPushup }}" label="Push-up terbanyak" delta="Real-time" color="red" />
+                <x-stat-card icon="🏃" value="{{ $avgYoyo }}" label="Rata-rata Yo-Yo" delta="Saat ini" color="green" />
+                <x-stat-card icon="⚡" value="{{ $bestSpeed }}" label="Lari 50 meter tercepat" delta="Saat ini" color="yellow" />
+                <x-stat-card icon="🔄" value="{{ $avgAgility }}" label="Rata-rata kelincahan" delta="Saat ini" color="blue" />
+                <x-stat-card icon="💪" value="{{ $maxPushup }}" label="Tekan tubuh terbanyak" delta="Saat ini" color="red" />
             @endunless
             @if($isAdmin || $isCoach)
                 <x-stat-card icon="🧠" value="{{ $avgMentalAssessment }}" label="Rata-rata mental" delta="Assessment"
@@ -319,12 +319,12 @@
                 <div class="quick-test-grid">
                     @unless($isCoach)
                         @foreach([
-                                ['forms.endurance', '🏃', 'Endurance', 'YoYo test', '#00E676'],
-                                ['forms.speed', '⚡', 'Speed', 'Sprint 50 meter', '#FFD740'],
-                                ['forms.agility', '🔄', 'Agility', 'Hexagonal & Illinois', '#40C4FF'],
-                                ['forms.strength', '💪', 'Strength', 'Push-up & sit-up', '#FF6E6E'],
-                                ['forms.power', '🦵', 'Power', 'Standing long jump', '#FFAB40'],
-                                ['forms.balance', '⚖️', 'Balance', 'Y Balance Test', '#B39DDB'],
+                                ['forms.endurance', '🏃', 'Daya Tahan', 'Tes Yo-Yo', '#00E676'],
+                                ['forms.speed', '⚡', 'Kecepatan', 'Lari sprint 50 meter', '#FFD740'],
+                                ['forms.agility', '🔄', 'Kelincahan', 'Tes Hexagonal dan Illinois', '#40C4FF'],
+                                ['forms.strength', '💪', 'Kekuatan', 'Tekan tubuh dan duduk-baring', '#FF6E6E'],
+                                ['forms.power', '🦵', 'Daya Ledak', 'Lompat jauh tanpa awalan', '#FFAB40'],
+                                ['forms.balance', '⚖️', 'Keseimbangan', 'Tes keseimbangan Y', '#B39DDB'],
                             ] as [$route, $icon, $name, $description, $color])
                             <a href="{{ route($route) }}" class="quick-test" style="--test-accent:{{ $color }}">
                                 <span class="quick-test-icon" aria-hidden="true">{{ $icon }}</span>

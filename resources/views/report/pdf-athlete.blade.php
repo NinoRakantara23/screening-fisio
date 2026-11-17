@@ -1,16 +1,16 @@
 @php
     $profile = $profileResult ?? $testResults->first();
     $palette = [
-        'endurance' => ['accent' => '#17864B', 'pale' => '#EAF5EE', 'name' => 'ENDURANCE', 'subtitle' => 'YoYo Intermittent Recovery Test'],
-        'speed' => ['accent' => '#D89A00', 'pale' => '#FFF7DF', 'name' => 'SPEED', 'subtitle' => '50 Meter Sprint'],
-        'agility' => ['accent' => '#2789B8', 'pale' => '#EAF5FB', 'name' => 'AGILITY', 'subtitle' => 'Hexagonal & Illinois Test'],
-        'strength' => ['accent' => '#C94F4F', 'pale' => '#FCEEEE', 'name' => 'STRENGTH', 'subtitle' => 'Push Up & Sit Up'],
-        'power' => ['accent' => '#D67520', 'pale' => '#FFF1E5', 'name' => 'POWER', 'subtitle' => 'Standing Long Jump'],
-        'accuracy' => ['accent' => '#247B70', 'pale' => '#E9F5F2', 'name' => 'AKURASI', 'subtitle' => 'Shooting Accuracy'],
-        'reaction' => ['accent' => '#B64343', 'pale' => '#FBECEC', 'name' => 'REAKSI', 'subtitle' => 'Ruler Drop Test'],
-        'coordination' => ['accent' => '#7059A6', 'pale' => '#F1EDFA', 'name' => 'KOORDINASI', 'subtitle' => 'Fukuda Step Test'],
-        'flexibility' => ['accent' => '#BD741A', 'pale' => '#FBF2E6', 'name' => 'FLEKSIBILITAS', 'subtitle' => 'Ankle Flexibility Test'],
-        'balance' => ['accent' => '#17864B', 'pale' => '#EAF5EE', 'name' => 'BALANCE', 'subtitle' => 'Y Balance Test'],
+        'endurance' => ['accent' => '#17864B', 'pale' => '#EAF5EE', 'name' => 'DAYA TAHAN', 'subtitle' => 'Tes Pemulihan Intermiten Yo-Yo'],
+        'speed' => ['accent' => '#D89A00', 'pale' => '#FFF7DF', 'name' => 'KECEPATAN', 'subtitle' => 'Lari Sprint 50 Meter'],
+        'agility' => ['accent' => '#2789B8', 'pale' => '#EAF5FB', 'name' => 'KELINCAHAN', 'subtitle' => 'Tes Hexagonal dan Illinois'],
+        'strength' => ['accent' => '#C94F4F', 'pale' => '#FCEEEE', 'name' => 'KEKUATAN', 'subtitle' => 'Tekan Tubuh dan Duduk-Baring'],
+        'power' => ['accent' => '#D67520', 'pale' => '#FFF1E5', 'name' => 'DAYA LEDAK', 'subtitle' => 'Lompat Jauh Tanpa Awalan'],
+        'accuracy' => ['accent' => '#247B70', 'pale' => '#E9F5F2', 'name' => 'AKURASI', 'subtitle' => 'Akurasi Tendangan'],
+        'reaction' => ['accent' => '#B64343', 'pale' => '#FBECEC', 'name' => 'REAKSI', 'subtitle' => 'Tes Jatuh Penggaris'],
+        'coordination' => ['accent' => '#7059A6', 'pale' => '#F1EDFA', 'name' => 'KOORDINASI', 'subtitle' => 'Tes Langkah Fukuda'],
+        'flexibility' => ['accent' => '#BD741A', 'pale' => '#FBF2E6', 'name' => 'KELENTURAN', 'subtitle' => 'Kelenturan Pergelangan Kaki'],
+        'balance' => ['accent' => '#17864B', 'pale' => '#EAF5EE', 'name' => 'KESEIMBANGAN', 'subtitle' => 'Tes Keseimbangan Y'],
     ];
 @endphp
 
@@ -382,6 +382,23 @@
         $metrics = $testResult->display_results;
         $ratings = $testResult->display_ratings;
         $ratingClass = strtolower((string) ($testResult->rating ?? ''));
+        $ratingLabels = [
+            'elite' => 'Elit',
+            'excellent' => 'Sangat Baik',
+            'very good' => 'Sangat Baik',
+            'good' => 'Baik',
+            'above average' => 'Di Atas Rata-rata',
+            'average' => 'Rata-rata',
+            'fair' => 'Cukup',
+            'below average' => 'Di Bawah Rata-rata',
+            'below' => 'Di Bawah Rata-rata',
+            'weak' => 'Lemah',
+            'poor' => 'Buruk',
+            'very poor' => 'Sangat Buruk',
+            'normal' => 'Normal',
+            'abnormal' => 'Tidak Normal',
+            'optimal' => 'Optimal',
+        ];
     @endphp
     <table class="test-card">
         <tr class="test-heading">
@@ -415,7 +432,7 @@
                 <td colspan="{{ max(count($metrics), 3) }}">
                     @foreach($ratings as $label => $rating)
                         <span
-                            class="rating-chip {{ $ratingClass }}">{{ $label !== 'Rating' ? $label . ': ' : '' }}{{ $rating }}</span>
+                            class="rating-chip {{ $ratingClass }}">{{ $label !== 'Rating' ? $label . ': ' : '' }}{{ $ratingLabels[strtolower(trim((string) $rating))] ?? $rating }}</span>
                     @endforeach
                 </td>
             </tr>

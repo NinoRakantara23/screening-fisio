@@ -50,7 +50,7 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr style="border-bottom:1px solid rgba(0,230,118,0.2)">
-                            @foreach(['Jenis Tes', 'Hasil', 'Rating', 'Tanggal'] as $head)
+                            @foreach(['Jenis Tes', 'Hasil', 'Penilaian', 'Tanggal'] as $head)
                                 <th class="text-left py-2 px-2 text-xs uppercase tracking-widest font-mono2" style="color:#7A8D9E">{{ $head }}</th>
                             @endforeach
                         </tr>

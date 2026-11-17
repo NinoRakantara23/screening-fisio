@@ -6,10 +6,14 @@ use App\Models\Athlete;
 use App\Models\MentalAssessment;
 use App\Models\TaktikAssessment;
 use App\Models\TestResult;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class PlayerController extends Controller
 {
@@ -28,12 +32,23 @@ class PlayerController extends Controller
         return $athlete;
     }
 
-    /** Batasi query ke atlet ini (termasuk data lama yang hanya terhubung lewat nama). */
+    /** Data lama tanpa ID hanya dicocokkan berdasarkan nama jika nama tidak ambigu. */
     private function scopeAthlete($query, Athlete $athlete)
     {
-        return $query->where(function ($q) use ($athlete) {
-            $q->where('athlete_id', $athlete->id)
-              ->orWhere(fn($legacy) => $legacy->whereNull('athlete_id')->where('name', $athlete->name));
+        $hasDuplicateName = Athlete::withTrashed()
+            ->where('name', $athlete->name)
+            ->where('id', '!=', $athlete->id)
+            ->exists();
+
+        return $query->where(function ($query) use ($athlete, $hasDuplicateName) {
+            $query->where('athlete_id', $athlete->id);
+
+            if (!$hasDuplicateName) {
+                $query->orWhere(function ($legacy) use ($athlete) {
+                    $legacy->whereNull('athlete_id')
+                        ->where('name', $athlete->name);
+                });
+            }
         });
     }
 
@@ -109,16 +124,16 @@ class PlayerController extends Controller
 
         $stats = [
             ['value' => $yoyo  !== null ? number_format($yoyo, 0) . 'm' : '—', 'label' => 'YoYo Terbaik', 'color' => '#00E676'],
-            ['value' => $speed !== null ? number_format($speed, 1) . 's' : '—', 'label' => 'Speed 50M',   'color' => '#FFD740'],
-            ['value' => $agi   !== null ? number_format($agi, 1) . 's'   : '—', 'label' => 'Agility',     'color' => '#40C4FF'],
+            ['value' => $speed !== null ? number_format($speed, 1) . 's' : '—', 'label' => 'Lari 50 Meter', 'color' => '#FFD740'],
+            ['value' => $agi   !== null ? number_format($agi, 1) . 's'   : '—', 'label' => 'Kelincahan',    'color' => '#40C4FF'],
             ['value' => $mental ? $mental->average_score . '/5' : '—',           'label' => 'Skor Mental', 'color' => '#B39DDB'],
             ['value' => $taktik ? $taktik->average_score . '/5' : '—',           'label' => 'Skor Taktik', 'color' => '#FFAB40'],
         ];
 
         $progress = collect([
-            'endurance' => 'Endurance (YoYo)', 'speed' => 'Kecepatan (Speed)',
-            'agility' => 'Kelincahan (Agility)', 'strength' => 'Kekuatan (Strength)',
-            'power' => 'Power (Jump)',
+            'endurance' => 'Daya Tahan Yo-Yo', 'speed' => 'Kecepatan (Lari 50 Meter)',
+            'agility' => 'Kelincahan', 'strength' => 'Kekuatan',
+            'power' => 'Daya Ledak (Lompatan)',
         ])->map(fn($label, $type) => ['label' => $label, 'percent' => $percents->get($type)]);
 
         return view('player.dashboard', [
@@ -187,18 +202,43 @@ class PlayerController extends Controller
 
     public function profile()
     {
-        return view('player.profile', ['athlete' => $this->athlete()]);
+        $athlete = $this->athlete();
+
+        return view('player.profile', [
+            'athlete' => $athlete,
+            'testCount' => $this->allResults($athlete)->count(),
+        ]);
     }
 
     public function updateProfile(Request $request)
     {
         $data = $request->validate([
-            'phone'  => ['nullable', 'string', 'max:20'],
+            'phone'  => ['required', 'string', 'max:20', 'regex:/^[0-9+\s().-]+$/'],
             'height' => ['nullable', 'numeric', 'between:100,250'],
             'weight' => ['nullable', 'numeric', 'between:30,200'],
         ]);
 
-        $this->athlete()->update($data); // hanya field di atas, nama/posisi tidak bisa diubah
+        $data['phone'] = User::normalizePhone($data['phone']);
+        Validator::make(
+            ['phone' => $data['phone']],
+            [
+                'phone' => [
+                    'required',
+                    'regex:/^0[0-9]{8,14}$/',
+                    Rule::unique('users', 'phone')->ignore($request->user()->id),
+                ],
+            ],
+            [
+                'phone.regex' => 'Nomor HP harus berupa nomor Indonesia yang valid.',
+                'phone.unique' => 'Nomor HP tersebut sudah digunakan akun lain.',
+            ]
+        )->validate();
+
+        $athlete = $this->athlete();
+        DB::transaction(function () use ($athlete, $request, $data) {
+            $athlete->update($data);
+            $request->user()->update(['phone' => $data['phone']]);
+        });
 
         return back()->with('success', 'Profil berhasil diperbarui.');
     }

@@ -70,11 +70,11 @@ class ReportController extends Controller
             : '—';
 
         $summaryStats = [
-            ['value' => $average('distance', 'm', 0), 'label' => 'YoYo Avg', 'color' => '#00E676'],
-            ['value' => $average('time_seconds', 's', 2), 'label' => 'Speed Avg', 'color' => '#FFD600'],
-            ['value' => $average('hex_avg', 's', 2), 'label' => 'Agility Avg', 'color' => '#4FC3F7'],
-            ['value' => $average('best', 'cm', 1), 'label' => 'Jump Avg', 'color' => '#FF9800'],
-            ['value' => $average('value_cm', 'cm', 1), 'label' => 'Reaksi Avg', 'color' => '#FF4444'],
+            ['value' => $average('distance', 'm', 0), 'label' => 'Rata-rata Yo-Yo', 'color' => '#00E676'],
+            ['value' => $average('time_seconds', 's', 2), 'label' => 'Rata-rata kecepatan', 'color' => '#FFD600'],
+            ['value' => $average('hex_avg', 's', 2), 'label' => 'Rata-rata kelincahan', 'color' => '#4FC3F7'],
+            ['value' => $average('best', 'cm', 1), 'label' => 'Rata-rata lompatan', 'color' => '#FF9800'],
+            ['value' => $average('value_cm', 'cm', 1), 'label' => 'Rata-rata reaksi', 'color' => '#FF4444'],
         ];
 
         return view('report.index', compact('reports', 'position', 'date', 'summaryStats'));

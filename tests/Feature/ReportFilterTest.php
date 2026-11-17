@@ -63,7 +63,7 @@ class ReportFilterTest extends TestCase
         $this->get(route('report.index', ['position' => 'Bek', 'date' => $date]))
             ->assertOk()
             ->assertSee('Tidak ada data untuk filter ini.')
-            ->assertSee('YoYo Avg')
+            ->assertSee('Rata-rata Yo-Yo')
             ->assertSee('—');
     }
 

@@ -125,7 +125,7 @@
                 <div class="mt-4 mb-1">
                     <p class="text-xs uppercase tracking-widest px-2 mb-2 font-mono2"
                         style="color:#00E676">
-                        Screening Fisioterapi
+                        Pemeriksaan Fisioterapi
                     </p>
 
                     <x-nav-item route="tests.index"
@@ -134,23 +134,23 @@
 
                     <x-nav-item route="forms.endurance"
                         icon="🏃"
-                        label="Endurance (YoYo)" />
+                        label="Daya Tahan Yo-Yo" />
 
                     <x-nav-item route="forms.speed"
                         icon="⚡"
-                        label="Speed 50M" />
+                        label="Lari Sprint 50 Meter" />
 
                     <x-nav-item route="forms.agility"
                         icon="🔄"
-                        label="Agility Test" />
+                        label="Tes Kelincahan" />
 
                     <x-nav-item route="forms.strength"
                         icon="💪"
-                        label="Strength" />
+                        label="Kekuatan Otot" />
 
                     <x-nav-item route="forms.power"
                         icon="🦵"
-                        label="Power Jump" />
+                        label="Daya Ledak" />
                 </div>
 
                 {{-- Tes Fungsional --}}
@@ -174,11 +174,11 @@
 
                     <x-nav-item route="forms.flexibility"
                         icon="🦶"
-                        label="Fleksibilitas Ankle" />
+                        label="Kelenturan Pergelangan Kaki" />
 
                     <x-nav-item route="forms.balance"
                         icon="⚖️"
-                        label="Y Balance Test" />
+                        label="Keseimbangan Y" />
                 </div>
 
                 {{-- Output Laporan Fisio --}}

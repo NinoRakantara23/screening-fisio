@@ -12,16 +12,16 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             @foreach([
-                    ['forms.endurance', '🏃', 'ENDURANCE', 'YoYo Intermittent Recovery Test', 'Mengukur kapasitas aerobik dan daya tahan kardiovaskular atlet dengan lari ulang-alik 20m.', 'green'],
-                    ['forms.speed', '⚡', 'SPEED', 'Speed 50 Meter Sprint', 'Mengukur kecepatan maksimal, akselerasi, dan kemampuan sprint atlet dalam jarak pendek.', 'yellow'],
-                    ['forms.agility', '🔄', 'AGILITY', 'Hexagonal & Illinois Agility', 'Mengukur kelincahan dan kemampuan mengubah arah dengan cepat dan akurat.', 'blue'],
-                    ['forms.strength', '💪', 'STRENGTH', 'Push Up & Sit Up', 'Mengukur kekuatan otot dada, bahu, lengan, dan otot inti (core strength) atlet.', 'red'],
-                    ['forms.power', '🦵', 'POWER', 'Standing Long Jump (Broad Jump)', 'Mengukur power eksplosif otot tungkai dengan lompatan dua kaki tanpa awalan.', 'orange'],
-                    ['forms.accuracy', '🎯', 'SKILL', 'Akurasi Tendangan (Shooting)', 'Mengukur ketepatan tendangan bola ke sasaran dari jarak 16.5 meter ke gawang.', 'purple'],
-                    ['forms.reaction', '👁️', 'REACTION', 'Test Kecepatan Reaksi', 'Mengukur waktu reaksi terhadap stimulus visual menggunakan ruler drop test.', 'red'],
-                    ['forms.coordination', '🌀', 'COORDINATION', 'Fukuda Step Test (Koordinasi)', 'Mengukur keseimbangan dinamis dan koordinasi neuromuskuler melalui marching test.', 'cyan'],
-                    ['forms.flexibility', '🦶', 'FLEXIBILITY', 'Ankle Flexibility Test', 'Mengukur fleksibilitas sendi ankle dan kemampuan dorsifleksi untuk mencegah cedera.', 'yellow'],
-                    ['forms.balance', '⚖️', 'BALANCE', 'Y Balance Test (YBT)', 'Mengukur stabilitas dinamis dan kontrol neuromuskuler ekstremitas bawah dalam 3 arah.', 'green'],
+                    ['forms.endurance', '🏃', 'DAYA TAHAN', 'Tes Daya Tahan Yo-Yo', 'Mengukur kapasitas aerobik dan daya tahan jantung-paru atlet melalui lari bolak-balik 20 meter.', 'green'],
+                    ['forms.speed', '⚡', 'KECEPATAN', 'Lari Sprint 50 Meter', 'Mengukur kecepatan maksimal dan kemampuan mempercepat lari dalam jarak pendek.', 'yellow'],
+                    ['forms.agility', '🔄', 'KELINCAHAN', 'Tes Hexagonal dan Illinois', 'Mengukur kelincahan serta kemampuan mengubah arah dengan cepat dan tepat.', 'blue'],
+                    ['forms.strength', '💪', 'KEKUATAN', 'Tes Tekan Tubuh dan Duduk-Baring', 'Mengukur kekuatan otot dada, bahu, lengan, dan otot inti atlet.', 'red'],
+                    ['forms.power', '🦵', 'DAYA LEDAK', 'Tes Lompat Jauh Tanpa Awalan', 'Mengukur daya ledak otot tungkai melalui lompatan dua kaki tanpa awalan.', 'orange'],
+                    ['forms.accuracy', '🎯', 'KETERAMPILAN', 'Tes Ketepatan Tendangan', 'Mengukur ketepatan tendangan ke sasaran gawang dari jarak 16,5 meter.', 'purple'],
+                    ['forms.reaction', '👁️', 'REAKSI', 'Tes Kecepatan Reaksi', 'Mengukur waktu reaksi atlet terhadap rangsangan visual dengan tes jatuh penggaris.', 'red'],
+                    ['forms.coordination', '🌀', 'KOORDINASI', 'Tes Langkah Fukuda', 'Mengukur keseimbangan dinamis dan koordinasi gerak melalui langkah di tempat.', 'cyan'],
+                    ['forms.flexibility', '🦶', 'KELENTURAN', 'Tes Kelenturan Pergelangan Kaki', 'Mengukur kelenturan sendi pergelangan kaki dan kemampuan menekuk kaki ke atas.', 'yellow'],
+                    ['forms.balance', '⚖️', 'KESEIMBANGAN', 'Tes Keseimbangan Y', 'Mengukur stabilitas dinamis dan kendali gerak tungkai ke tiga arah.', 'green'],
                 ] as [$route, $icon, $cat, $name, $desc, $color])
 
                 @php
